@@ -1,0 +1,11 @@
+Metrics Router
+
+Used to provide a common interface for production system metrics. Polls various pieces of production infrastructure for key/value metrics. These metrics are republished onto an MQTT message bus.
+
+Monitoring tools and service status websites subscribe to the MQTT metrics channel to receive the latest production metrics.
+A metric message is a key/value pair delimited with a semicolon.
+
+ie.
+webserver1.cpu.load:0.2
+
+Additional metric sources are added by implementing the MerticSource Java interface.

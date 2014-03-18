@@ -55,7 +55,7 @@ public class Publish {
 	}
 	
 	private void publishMetrics(final Map<String, String> metrics) {
-		log.info("Publishing metrics: " + metrics);
+		log.debug("Publishing metrics: " + metrics);
 		for (MetricsDestination metricsDestination : metricDestinations) {
 			try {
 				metricsDestination.publishMetrics(metrics);

@@ -1,47 +1,66 @@
 package uk.co.eelpieconsulting.monitoring.metricsrouter.sources.n0tice;
 
+import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.MetricSource;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.n0tice.api.client.N0ticeApi;
 import com.n0tice.api.client.exceptions.N0ticeException;
 import com.n0tice.api.client.model.AccessToken;
 import com.n0tice.api.client.model.ResultSet;
 import com.n0tice.api.client.model.SearchQuery;
-import com.n0tice.api.client.model.User;
 
 @Component
 public class N0ticeStatisticsSource implements MetricSource {
 	
+    private static final Logger log = Logger.getLogger(N0ticeStatisticsSource.class);
+    
 	private static final String N0TICE_PREFIX = "n0tice-";
 	
-	private final N0ticeApi api;
+	private final String apiUrl;
+	private final String consumerKey;
+	private final String consumerSecret;
+	private final List<AccessToken> accessTokens;
 	
 	@Autowired
 	public N0ticeStatisticsSource(@Value("${n0tice.apiUrl}") String apiUrl, 
 			@Value("${n0tice.consumerKey}") String consumerKey,
 			@Value("${n0tice.consumerSecret}") String consumerSecret,
-			@Value("${n0tice.accessToken}") String accessToken,
-			@Value("${n0tice.accessSecret}") String accessSecret) {
-		this.api = new N0ticeApi(apiUrl, consumerKey, consumerSecret, new AccessToken(accessToken, accessSecret));
+			@Value("${n0tice.accessTokens}") String accessTokenStrings) {		
+		this.apiUrl = apiUrl;
+		this.consumerKey = consumerKey;
+		this.consumerSecret = consumerSecret;
+			
+		this.accessTokens = Lists.newArrayList();
+		Iterable<String> tokenPairs = Splitter.on(",").split(accessTokenStrings);
+		for (String tokenPair : tokenPairs) {
+			final String[] parts = tokenPair.split("\\|");
+			AccessToken accessToken = new AccessToken(parts[0], parts[1]);
+			log.debug("Adding access token: " + accessToken);
+			accessTokens.add(accessToken);
+		}
 	}
 	
 	@Override
 	public Map<String, String> getMetrics() {
-		try {
-			Map<String, String> metrics = Maps.newHashMap();	
-			metrics.put(N0TICE_PREFIX + "approved", Integer.toString(api.search(new SearchQuery().limit(0)).getNumberFound()));		
-			metrics.putAll(fetchUserSpecificMetrics());				
-			return metrics;
-		} catch (Exception e) {
-			throw new RuntimeException(e);
+		final Map<String, String> metrics = Maps.newHashMap();
+		for (AccessToken accessToken : accessTokens) {
+			try {
+				metrics.putAll(fetchUserSpecificMetrics(accessToken));					
+			} catch (Exception e) {
+				log.error(e);
+			}
 		}
+		return metrics;
 	}
 	
 	@Override
@@ -49,12 +68,12 @@ public class N0ticeStatisticsSource implements MetricSource {
 		return 60;
 	}
 	
-	private Map<String, String> fetchUserSpecificMetrics() throws N0ticeException {
-		final User user = api.verify();
-		final String username = user.getUsername();
+	private Map<String, String> fetchUserSpecificMetrics(AccessToken accessToken) throws N0ticeException {
+		final N0ticeApi api = new N0ticeApi(apiUrl, consumerKey, consumerSecret, accessToken);
+		final String username = api.verify().getUsername();
+		log.info("Polling for metrics for user: " + username);
 		
-		Map<String, String> userSpecificMetrics = Maps.newHashMap();
-		
+		Map<String, String> userSpecificMetrics = Maps.newHashMap();		
 		ResultSet approved = api.search(new SearchQuery().noticeBoardOwnedBy(username).limit(0));		
 		userSpecificMetrics.put(N0TICE_PREFIX + username + "-approved", Integer.toString(approved.getNumberFound()));		
 		

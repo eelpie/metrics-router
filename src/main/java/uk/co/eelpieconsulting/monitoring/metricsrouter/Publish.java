@@ -35,7 +35,7 @@ public class Publish {
 		log.info("Initialised with metric sources: " + metricSources);
 		log.info("Initialised with metric destinations: " + metricDestinations);
 	}
-		
+	
 	@Scheduled(fixedDelay=5000)
 	public void publish() throws Exception {
 		log.debug("Polling");

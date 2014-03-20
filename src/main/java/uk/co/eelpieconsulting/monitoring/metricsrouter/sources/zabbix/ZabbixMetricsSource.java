@@ -79,7 +79,7 @@ public class ZabbixMetricsSource implements MetricSource {
 			fetchMetricByKey(authToken, hosts, metrics, key);			
 		}
 				            	
-		metrics.putAll(zabbixApi.getTriggers(authToken));				
+		metrics.putAll(zabbixApi.getTriggerStates(authToken));				
 		return metrics;
 	}
 

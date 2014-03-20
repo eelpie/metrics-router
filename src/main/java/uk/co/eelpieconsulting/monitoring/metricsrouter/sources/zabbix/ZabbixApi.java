@@ -71,12 +71,12 @@ public class ZabbixApi {
 		return objectMapper.readValue(httpFetcher.post(httpPost), Map.class);
 	}
 	
-	public Map<String, String> getTriggers(String authToken) throws HttpNotFoundException, HttpBadRequestException, HttpForbiddenException, HttpFetchException, IOException {
+	@SuppressWarnings("unchecked")
+	public Map<String, String> getTriggerStates(String authToken) throws HttpNotFoundException, HttpBadRequestException, HttpForbiddenException, HttpFetchException, IOException {
 		Map<String, String> triggerMetrics = Maps.newHashMap();
 		
 		final HttpPost httpPost = setupApiPost(zabbixRequestJsonBuilder.createGetTriggersJson(authToken));
 		final List<Map<String, Object>> results = (List<Map<String, Object>>) objectMapper.readValue(httpFetcher.post(httpPost),  Map.class).get("result");
-		 
 		int numberOfActiveTriggers = 0;
 		for (Map<String, Object> result : results) {
 			 final boolean isTriggered = !result.get("value").equals("0");
@@ -91,6 +91,22 @@ public class ZabbixApi {
 		triggerMetrics.put("numberOfActiveTriggers", Integer.toString(numberOfActiveTriggers));
 		triggerMetrics.put("activeTriggers", Boolean.toString(numberOfActiveTriggers > 0));		
 		return triggerMetrics;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Map<String, String> getTriggers(String authToken) throws HttpNotFoundException, HttpBadRequestException, HttpForbiddenException, HttpFetchException, IOException {
+		final Map<String, String> triggers = Maps.newHashMap();
+		
+		final HttpPost httpPost = setupApiPost(zabbixRequestJsonBuilder.createGetTriggersJson(authToken));
+		String json = httpFetcher.post(httpPost);
+		final List<Map<String, Object>> results = (List<Map<String, Object>>) objectMapper.readValue(json,  Map.class).get("result");
+		for (Map<String, Object> result : results) {
+			final String triggerId = (String) result.get("triggerid");
+			final String label = (String) result.get("description");
+			triggers.put(triggerId, label);
+		}				
+		
+		return triggers;		
 	}
 	
 	private HttpPost setupApiPost(String json) throws UnsupportedEncodingException {

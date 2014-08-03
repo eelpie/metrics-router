@@ -11,10 +11,6 @@ import org.springframework.stereotype.Component;
 
 import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.MetricSource;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.cloudwatch.model.Dimension;
 import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
@@ -41,19 +37,12 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	private static final NumberFormat integer = new DecimalFormat("#");
 	private static final NumberFormat threeDecimalPlacesFormat = new DecimalFormat("#.###");
 
-	private String accessKey;
-	private String accessSecret;
-	private String regionName;
-	private List<String> loadBalancers;
+	private final CloudWatchClientFactory cloudWatchClientFactory;
+	private final List<String> loadBalancers;
 	
 	@Autowired
-	public LoadBalancerMetricsSource(@Value("${ec2.accessKey}")String accessKey, 
-			@Value("${ec2.accessSecret}") String accessSecret,
-			@Value("${ec2.regionName}") String regionName, 
-			@Value("${ec2.loadBalancers}") String loadBalancers) {
-		this.accessKey = accessKey;
-		this.accessSecret = accessSecret;
-		this.regionName = regionName;
+	public LoadBalancerMetricsSource(CloudWatchClientFactory cloudWatchClientFactory, @Value("${ec2.loadBalancers}") String loadBalancers) {
+		this.cloudWatchClientFactory = cloudWatchClientFactory;
 		this.loadBalancers = Lists.newArrayList(Splitter.on(",").split(loadBalancers));
 	}
 	
@@ -72,7 +61,7 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	}
 
 	private Map<String, String> getLoadBalancerMetrics(String loadBalancer) {
-		final AmazonCloudWatchClient amazonCloudWatchClient = getCloudWatchClient(accessKey, accessSecret, regionName);
+		final AmazonCloudWatchClient amazonCloudWatchClient = cloudWatchClientFactory.getCloudWatchClient();
 		
 		final Map<String, String> metrics = Maps.newLinkedHashMap();
 		
@@ -146,14 +135,6 @@ public class LoadBalancerMetricsSource implements MetricSource {
 		metrics.put(loadBalancer + "-" + metricResult.getLabel() + "-" + suffix, threeDecimalPlacesFormat.format(average));
 	}
 
-	private AmazonCloudWatchClient getCloudWatchClient(String accessKey, String accessSecret, String regionNames) {
-		AWSCredentials credentials = new BasicAWSCredentials(accessKey, accessSecret);
-		AmazonCloudWatchClient amazonCloudWatchClient = new AmazonCloudWatchClient(credentials);
-		Region region = RegionUtils.getRegion(regionName);
-		amazonCloudWatchClient.setRegion(region);
-		return amazonCloudWatchClient;
-	}
-	
 	private GetMetricStatisticsRequest loadBalancerRequestCount(String loadBalancer, String metricName) {
 		GetMetricStatisticsRequest getMetricStatisticsRequest = new GetMetricStatisticsRequest()	
 			.withUnit(StandardUnit.Count)

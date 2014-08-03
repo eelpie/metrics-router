@@ -21,19 +21,14 @@ import com.google.common.collect.Maps;
 public class RDSMetricsSource implements MetricSource {
 	
 	private static final String MINUTE = "minute";
-	
 	private static final NumberFormat integer = new DecimalFormat("#");
 	
 	private final CloudWatchClientFactory cloudWatchClientFactory;
-	private final RequestBuilder requestBuilder;
-
 	private final List<String> databases;
 	
 	@Autowired
-	public RDSMetricsSource(CloudWatchClientFactory cloudWatchClientFactory, RequestBuilder requestBuilder,
-			@Value("${ec2.databases}") String databases) {
+	public RDSMetricsSource(CloudWatchClientFactory cloudWatchClientFactory, @Value("${ec2.databases}") String databases) {
 		this.cloudWatchClientFactory = cloudWatchClientFactory;
-		this.requestBuilder = requestBuilder;
 		this.databases = Lists.newArrayList(Splitter.on(",").split(databases));
 	}
 	
@@ -55,7 +50,7 @@ public class RDSMetricsSource implements MetricSource {
 		final AmazonCloudWatchClient amazonCloudWatchClient = cloudWatchClientFactory.getCloudWatchClient();		
 
 		final Map<String, String> metrics = Maps.newLinkedHashMap();
-		parseAverageDataPoints(database, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastMinuteOf(requestBuilder.freeStorageSpaceFor(database))), MINUTE);
+		parseAverageDataPoints(database, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().freeStorageSpaceFor(database).lastMinuteOf()), MINUTE);
 		return metrics;
 	}
 	

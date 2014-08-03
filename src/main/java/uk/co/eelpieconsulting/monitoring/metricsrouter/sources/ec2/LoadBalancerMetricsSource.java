@@ -30,14 +30,11 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	private static final NumberFormat threeDecimalPlacesFormat = new DecimalFormat("#.###");
 
 	private final CloudWatchClientFactory cloudWatchClientFactory;
-	private final RequestBuilder requestBuilder;
 	private final List<String> loadBalancers;
 	
 	@Autowired
-	public LoadBalancerMetricsSource(CloudWatchClientFactory cloudWatchClientFactory, RequestBuilder requestBuilder,
-			@Value("${ec2.loadBalancers}") String loadBalancers) {
+	public LoadBalancerMetricsSource(CloudWatchClientFactory cloudWatchClientFactory, @Value("${ec2.loadBalancers}") String loadBalancers) {
 		this.cloudWatchClientFactory = cloudWatchClientFactory;
-		this.requestBuilder = requestBuilder;
 		this.loadBalancers = Lists.newArrayList(Splitter.on(",").split(loadBalancers));
 	}
 	
@@ -60,20 +57,19 @@ public class LoadBalancerMetricsSource implements MetricSource {
 		
 		final Map<String, String> metrics = Maps.newLinkedHashMap();
 		
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastMinuteOf(requestBuilder.loadBalancerRequestCount(loadBalancer, REQUEST_COUNT))), MINUTE);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastHourOf(requestBuilder.loadBalancerRequestCount(loadBalancer, REQUEST_COUNT))), HOUR);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastDayOf(requestBuilder.loadBalancerRequestCount(loadBalancer, REQUEST_COUNT))), DAY);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastMinuteOf()), MINUTE);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastHourOf()), HOUR);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastDayOf()), DAY);
 
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastMinuteOf(requestBuilder.loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX))), MINUTE);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastHourOf(requestBuilder.loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX))), HOUR);	
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastDayOf(requestBuilder.loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX))), DAY);
-				
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastMinuteOf(requestBuilder.loadBalancerLatency(loadBalancer))), MINUTE);
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastHourOf(requestBuilder.loadBalancerLatency(loadBalancer))), HOUR);
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(requestBuilder.lastDayOf(requestBuilder.loadBalancerLatency(loadBalancer))), DAY);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastMinuteOf()), MINUTE);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastHourOf()), HOUR);
+		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastDayOf()), DAY);
+		
+		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastMinuteOf()), MINUTE);
+		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastHourOf()), HOUR);
+		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastDayOf()), DAY);
 		
 		generateBadRequestPercentages(loadBalancer, metrics);
-		
 		return metrics;
 	}
 

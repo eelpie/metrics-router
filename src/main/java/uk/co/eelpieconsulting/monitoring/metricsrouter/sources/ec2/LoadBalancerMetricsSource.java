@@ -55,19 +55,22 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	private Map<String, String> getLoadBalancerMetrics(String loadBalancer) {
 		final AmazonCloudWatchClient amazonCloudWatchClient = cloudWatchClientFactory.getCloudWatchClient();
 		
-		final Map<String, String> metrics = Maps.newLinkedHashMap();
+		final Map<String, String> metrics = Maps.newHashMap();
 		
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastMinuteOf()), MINUTE);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastHourOf()), HOUR);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT).lastDayOf()), DAY);
+		RequestBuilder loadBalancerRequestCount = new RequestBuilder().loadBalancerRequestCount(loadBalancer, REQUEST_COUNT);
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerRequestCount.lastMinuteOf()), loadBalancer, MINUTE));
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerRequestCount.lastHourOf()), loadBalancer, HOUR));
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerRequestCount.lastDayOf()), loadBalancer, DAY));
 
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastMinuteOf()), MINUTE);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastHourOf()), HOUR);
-		parseDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX).lastDayOf()), DAY);
+		RequestBuilder loadBalancerFailedRequestCount = new RequestBuilder().loadBalancerRequestCount(loadBalancer, HTTP_CODE_BACKEND_5XX);
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerFailedRequestCount.lastMinuteOf()), loadBalancer, MINUTE));
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerFailedRequestCount.lastHourOf()), loadBalancer, HOUR));
+		metrics.putAll(parseDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerFailedRequestCount.lastDayOf()), loadBalancer, DAY));
 		
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastMinuteOf()), MINUTE);
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastHourOf()), HOUR);
-		parseAverageDataPoints(loadBalancer, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().loadBalancerLatency(loadBalancer).lastDayOf()), DAY);
+		RequestBuilder loadBalancerLatency = new RequestBuilder().loadBalancerLatency(loadBalancer);
+		metrics.putAll(parseAverageDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerLatency.lastMinuteOf()), loadBalancer, MINUTE));
+		metrics.putAll(parseAverageDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerLatency.lastHourOf()), loadBalancer, HOUR));
+		metrics.putAll(parseAverageDataPoints(amazonCloudWatchClient.getMetricStatistics(loadBalancerLatency.lastDayOf()), loadBalancer, DAY));
 		
 		generateBadRequestPercentages(loadBalancer, metrics);
 		return metrics;
@@ -95,14 +98,18 @@ public class LoadBalancerMetricsSource implements MetricSource {
 		return (bad * 1.0 / good * 1.0) * 100;
 	}
 	
-	private void parseDataPoints(String loadBalancer, final Map<String, String> metrics, GetMetricStatisticsResult metricResult, String suffix) {
+	private Map<String, String> parseDataPoints(GetMetricStatisticsResult metricResult, String prefix, String suffix) {
+		final Map<String, String> metrics = Maps.newHashMap();		
 		final Double sum = !metricResult.getDatapoints().isEmpty() ? metricResult.getDatapoints().get(0).getSum() : 0;
-		metrics.put(loadBalancer + "-" + metricResult.getLabel() + "-" + suffix, integer.format(sum));
+		metrics.put(prefix + "-" + metricResult.getLabel() + "-" + suffix, integer.format(sum));
+		return metrics;
 	}
 	
-	private void parseAverageDataPoints(String loadBalancer, final Map<String, String> metrics, GetMetricStatisticsResult metricResult, String suffix) {
+	private Map<String, String> parseAverageDataPoints(GetMetricStatisticsResult metricResult, String prefix, String suffix) {
+		final Map<String, String> metrics = Maps.newHashMap();
 		final Double average = !metricResult.getDatapoints().isEmpty() ? metricResult.getDatapoints().get(0).getAverage() : 0;
-		metrics.put(loadBalancer + "-" + metricResult.getLabel() + "-" + suffix, threeDecimalPlacesFormat.format(average));
+		metrics.put(prefix + "-" + metricResult.getLabel() + "-" + suffix, threeDecimalPlacesFormat.format(average));
+		return metrics;
 	}
 	
 }

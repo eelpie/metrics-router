@@ -21,7 +21,7 @@ import com.google.common.collect.Maps;
 public class RDSMetricsSource implements MetricSource {
 	
 	private static final String MINUTE = "minute";
-	private static final NumberFormat integer = new DecimalFormat("#");
+	private static final NumberFormat threeDecimalPlacesFormat = new DecimalFormat("#.###");
 	
 	private final CloudWatchClientFactory cloudWatchClientFactory;
 	private final List<String> databases;
@@ -50,13 +50,15 @@ public class RDSMetricsSource implements MetricSource {
 		final AmazonCloudWatchClient amazonCloudWatchClient = cloudWatchClientFactory.getCloudWatchClient();		
 
 		final Map<String, String> metrics = Maps.newLinkedHashMap();
-		parseAverageDataPoints(database, metrics, amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().freeStorageSpaceFor(database).lastMinuteOf()), MINUTE);
+		metrics.putAll(parseAverageDataPoints(amazonCloudWatchClient.getMetricStatistics(new RequestBuilder().freeStorageSpaceFor(database).lastMinuteOf()), database, MINUTE));
 		return metrics;
 	}
 	
-	private void parseAverageDataPoints(String loadBalancer, final Map<String, String> metrics, GetMetricStatisticsResult metricResult, String suffix) {
+	private Map<String, String> parseAverageDataPoints(GetMetricStatisticsResult metricResult, String prefix, String suffix) {
+		final Map<String, String> metrics = Maps.newHashMap();
 		final Double average = !metricResult.getDatapoints().isEmpty() ? metricResult.getDatapoints().get(0).getAverage() : 0;
-		metrics.put(loadBalancer + "-" + metricResult.getLabel() + "-" + suffix, integer.format(average));
+		metrics.put(prefix + "-" + metricResult.getLabel() + "-" + suffix, threeDecimalPlacesFormat.format(average));
+		return metrics;
 	}
 		
 }

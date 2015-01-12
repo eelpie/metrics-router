@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,9 @@ import com.google.common.collect.Maps;
 
 @Component
 public class ElasticSearchClusterStatsSource implements MetricSource {
-
+	
+    private static final Logger log = Logger.getLogger(ElasticSearchClusterStatsSource.class);
+    
 	private final String elasticSearchUrl;
 	private final ObjectMapper objectMapper;
 	
@@ -39,7 +42,7 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 	public Map<String, String> getMetrics() {
 		try {
 			final InputStream clusterStatsJson = fetchClusterStats();	
-			return extractHeapUsageStats(clusterStatsJson);
+			return extractHeapUsageStats(clusterStatsJson);			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}		
@@ -47,11 +50,13 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 	
 	@Override
 	public int getInterval() {
-		return 60;
+		return 10;
 	}
 	
 	private InputStream fetchClusterStats() throws UnsupportedEncodingException, HttpNotFoundException, HttpBadRequestException, HttpForbiddenException, HttpFetchException {
-		return new StringInputStream(new HttpFetcher().get(elasticSearchUrl + "/_nodes/stats?jvm=true"));
+		final String nodeStatsUrl = elasticSearchUrl + "/_nodes/stats?jvm=true";
+		log.debug("Fetching cluster stats from: " + nodeStatsUrl);
+		return new StringInputStream(new HttpFetcher().get(nodeStatsUrl));
 	}
 	
 	private Map<String, String> extractHeapUsageStats(InputStream clusterStatsJson) throws IOException, JsonProcessingException {
@@ -67,7 +72,7 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 			
 			JsonNode jvm = node.findPath("jvm");
 			String heapUsedPercent = jvm.findValue("heap_used_percent").asText();
-			final String hostname = node.get("hostname").asText();
+			final String hostname = node.get("host").asText();
 			heapUsage.put("elasticsearch-" + hostname + "-heapUsedPercent", heapUsedPercent);			
 		}
 		

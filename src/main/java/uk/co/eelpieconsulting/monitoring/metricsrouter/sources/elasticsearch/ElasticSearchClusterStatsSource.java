@@ -49,7 +49,7 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 	}
 	
 	private InputStream fetchClusterStats() throws UnsupportedEncodingException, HttpNotFoundException, HttpBadRequestException, HttpForbiddenException, HttpFetchException {
-		return new StringInputStream(new HttpFetcher().get(elasticSearchUrl + "/_cluster/nodes/stats?jvm=true"));
+		return new StringInputStream(new HttpFetcher().get(elasticSearchUrl + "/_nodes/stats?jvm=true"));
 	}
 	
 	private Map<String, String> extractHeapUsageStats(InputStream clusterStatsJson) throws IOException, JsonProcessingException {

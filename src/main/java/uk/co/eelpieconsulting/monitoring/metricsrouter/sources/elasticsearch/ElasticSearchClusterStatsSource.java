@@ -27,10 +27,12 @@ import com.google.common.collect.Maps;
 public class ElasticSearchClusterStatsSource implements MetricSource {
 
 	private final String elasticSearchUrl;
+	private final ObjectMapper objectMapper;
 	
 	@Autowired
 	public ElasticSearchClusterStatsSource(@Value("${elasticsearch.url}") String elasticSearchUrl) {
 		this.elasticSearchUrl = elasticSearchUrl;
+		this.objectMapper = new ObjectMapper();
 	}
 	
 	@Override
@@ -53,7 +55,7 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 	}
 	
 	private Map<String, String> extractHeapUsageStats(InputStream clusterStatsJson) throws IOException, JsonProcessingException {
-		JsonNode jsonTree = new ObjectMapper().readTree(clusterStatsJson);				
+		JsonNode jsonTree = objectMapper.readTree(clusterStatsJson);				
 		JsonNode nodes = jsonTree.findPath("nodes");
 		
 		Map<String, String> heapUsage = Maps.newHashMap();

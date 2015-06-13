@@ -32,10 +32,6 @@ public class MQTTPublisher implements MetricsDestination {
 	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.topic}") String topic) {
 		this.host = host;
 		this.topic = topic;
-		
-		Map<String, String> m = Maps.newHashMap();
-		m.put("test", "meh");
-		publishMetrics(m);
 	}
 	
 	@Override

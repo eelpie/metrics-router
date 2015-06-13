@@ -1,5 +1,6 @@
 package uk.co.eelpieconsulting.monitoring.metricsrouter.destinations;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -20,36 +21,34 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 
 @Component
 public class MQTTPublisher implements MetricsDestination {
 
-	private final String host;
 	private final String topic;
 	
+	private final MQTT mqtt;
+	private final BlockingConnection connection;
+	
 	@Autowired
-	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.topic}") String topic) {
-		this.host = host;
+	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.topic}") String topic) throws Exception {
 		this.topic = topic;
+		
+		mqtt = new MQTT();
+		mqtt.setHost("tls://" + host + ":8883");			
+		mqtt.setSslContext(sslContext());
+		
+		connection = mqtt.blockingConnection();
+		connection.connect();			
 	}
 	
 	@Override
 	public void publishMetrics(Map<String, String> metrics) {
-		try {
-			MQTT mqtt = new MQTT();
-			mqtt.setHost("tls://" + host + ":8883");			
-			mqtt.setSslContext(sslContext());			
-			
-			BlockingConnection connection = mqtt.blockingConnection();
-			connection.connect();		
-				
+		try {							
 			for (String metric : metrics.keySet()) {
 				String value = metrics.get(metric);
 				publish(connection, metric, value);	
 			}
-		
-			connection.disconnect();
 			
 		} catch (Exception e) {
 			throw new RuntimeException(e);

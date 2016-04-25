@@ -1,6 +1,19 @@
 package uk.co.eelpieconsulting.monitoring.metricsrouter.destinations;
+
+import com.google.common.base.Strings;
+import org.fusesource.mqtt.client.BlockingConnection;
+import org.fusesource.mqtt.client.MQTT;
+import org.fusesource.mqtt.client.QoS;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -9,18 +22,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.fusesource.mqtt.client.BlockingConnection;
-import org.fusesource.mqtt.client.MQTT;
-import org.fusesource.mqtt.client.QoS;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import com.google.common.base.Strings;
 
 @Component
 public class MQTTPublisher implements MetricsDestination {
@@ -31,12 +32,12 @@ public class MQTTPublisher implements MetricsDestination {
 	private final BlockingConnection connection;
 	
 	@Autowired
-	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.topic}") String topic) throws Exception {
+	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.cert}") String cert, @Value("${mqtt.topic}") String topic) throws Exception {
 		this.topic = topic;
-		
+
 		mqtt = new MQTT();
 		mqtt.setHost("tls://" + host + ":8883");			
-		mqtt.setSslContext(sslContext());
+		mqtt.setSslContext(sslContext(cert));
 		
 		connection = mqtt.blockingConnection();
 		connection.connect();			
@@ -60,9 +61,10 @@ public class MQTTPublisher implements MetricsDestination {
 		connection.publish(topic, message.getBytes(), QoS.AT_MOST_ONCE, false);
 	}
 	
-	private SSLContext sslContext() throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, KeyManagementException {
+	private SSLContext sslContext(String cert) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, KeyManagementException {
 		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		X509Certificate caCert = (X509Certificate) cf.generateCertificate(getClass().getClassLoader().getResourceAsStream("eelpie.crt"));
+		InputStream resourceAsStream = new FileInputStream(new File(cert));
+		X509Certificate caCert = (X509Certificate) cf.generateCertificate(resourceAsStream);
 
 		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());

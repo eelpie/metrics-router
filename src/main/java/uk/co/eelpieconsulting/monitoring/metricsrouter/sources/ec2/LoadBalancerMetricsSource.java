@@ -5,6 +5,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,9 @@ import com.google.common.collect.Maps;
 
 @Component
 public class LoadBalancerMetricsSource implements MetricSource {
-	
+
+	private static final Logger log = Logger.getLogger(LoadBalancerMetricsSource.class);
+
 	private static final String DAY = "day";
 	private static final String HOUR = "hour";
 	private static final String MINUTE = "minute";
@@ -42,6 +45,7 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	public Map<String, String> getMetrics() {
 		Map<String, String> metrics = Maps.newHashMap();		
 		for (String loadBalancer : loadBalancers) {
+			log.info("Polling for elb metrics: " + loadBalancer);
 			metrics.putAll(getLoadBalancerMetrics(loadBalancer));			
 		}
 		return metrics;

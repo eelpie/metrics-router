@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +41,17 @@ public class ElasticSearchClusterStatsSource implements MetricSource {
 	
 	@Override
 	public Map<String, String> getMetrics() {
-		try {
-			final InputStream clusterStatsJson = fetchClusterStats();	
-			return extractHeapUsageStats(clusterStatsJson);			
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}		
+		if (Strings.isNullOrEmpty(elasticSearchUrl)) {
+			return Maps.newHashMap();
+
+		} else {
+			try {
+				final InputStream clusterStatsJson = fetchClusterStats();
+				return extractHeapUsageStats(clusterStatsJson);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	@Override

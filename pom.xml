@@ -96,12 +96,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.n0tice.api</groupId>
-			<artifactId>n0tice-client</artifactId>
-			<version>2.1.202</version>
-		</dependency>
-		
-		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
@@ -143,11 +137,17 @@
 			<artifactId>common-http</artifactId>
 			<version>1.1.10</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk</artifactId>
 			<version>1.9.13</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
 		</dependency>
 
 		<dependency>

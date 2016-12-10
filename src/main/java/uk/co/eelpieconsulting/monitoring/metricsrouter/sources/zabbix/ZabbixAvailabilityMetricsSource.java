@@ -1,11 +1,11 @@
 package uk.co.eelpieconsulting.monitoring.metricsrouter.sources.zabbix;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -13,19 +13,14 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import uk.co.eelpieconsulting.common.http.HttpBadRequestException;
-import uk.co.eelpieconsulting.common.http.HttpFetchException;
-import uk.co.eelpieconsulting.common.http.HttpFetcher;
-import uk.co.eelpieconsulting.common.http.HttpForbiddenException;
-import uk.co.eelpieconsulting.common.http.HttpNotFoundException;
+import uk.co.eelpieconsulting.common.http.*;
 import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.MetricSource;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class ZabbixAvailabilityMetricsSource implements MetricSource {
@@ -51,8 +46,8 @@ public class ZabbixAvailabilityMetricsSource implements MetricSource {
 		this.zabbixPassword = zabbixPassword;
 		
 		this.zabbixApi = new ZabbixApi(new ZabbixRequestJsonBuilder(), new HttpFetcher(), zabbixUrl);		
-		this.triggerIds = Lists.newArrayList(Splitter.on(",").split(triggers));
-		log.info("Using triggers:" + triggerIds);		
+		this.triggerIds = Strings.isNullOrEmpty(triggers) ? Lists.<String>newArrayList() : Lists.newArrayList(Splitter.on(",").split(triggers));
+		log.info("Using triggers:" + triggerIds + " (" + triggerIds.size() + ")");
 	}
 	
 	@Override
@@ -70,7 +65,7 @@ public class ZabbixAvailabilityMetricsSource implements MetricSource {
 			try {
 				metrics.putAll(populateDayMetrics(start, end, Integer.parseInt(triggerId)));
 			} catch (Exception e) {
-				log.error(e);
+				log.error("Failed to parse trigger id: " + triggerId, e);
 			}
 		}
 		
@@ -80,7 +75,7 @@ public class ZabbixAvailabilityMetricsSource implements MetricSource {
 			try {
 				metrics.putAll(populateMonthMetrics(start, end, Integer.parseInt(triggerId)));
 			} catch (Exception e) {
-				log.error(e);
+				log.error("Failed to parse trigger id: " + triggerId, e);
 			}
 		}
 		

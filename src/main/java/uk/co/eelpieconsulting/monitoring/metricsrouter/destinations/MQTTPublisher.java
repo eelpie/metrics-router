@@ -1,12 +1,14 @@
 package uk.co.eelpieconsulting.monitoring.metricsrouter.destinations;
 
 import com.google.common.base.Strings;
+import org.apache.log4j.Logger;
 import org.fusesource.mqtt.client.BlockingConnection;
 import org.fusesource.mqtt.client.MQTT;
 import org.fusesource.mqtt.client.QoS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.zabbix.ZabbixAvailabilityMetricsSource;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -57,7 +59,7 @@ public class MQTTPublisher implements MetricsDestination {
 	}
 
 	private void publish(BlockingConnection connection, String metric, String value) throws Exception {
-		String message = metric + (!Strings.isNullOrEmpty(value) ? ":" + value : "");
+		final String message = metric + (!Strings.isNullOrEmpty(value) ? ":" + value : "");
 		connection.publish(topic, message.getBytes(), QoS.AT_MOST_ONCE, false);
 	}
 	

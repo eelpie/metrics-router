@@ -45,7 +45,7 @@ public class LoadBalancerMetricsSource implements MetricSource {
 	public Map<String, String> getMetrics() {
 		Map<String, String> metrics = Maps.newHashMap();		
 		for (String loadBalancer : loadBalancers) {
-			log.info("Polling for elb metrics: " + loadBalancer);
+			log.info("Polling for ELB metrics: " + loadBalancer);
 			metrics.putAll(getLoadBalancerMetrics(loadBalancer));			
 		}
 		return metrics;

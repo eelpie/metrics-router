@@ -32,15 +32,23 @@ public class MQTTPublisher implements MetricsDestination {
 	
 	private final MQTT mqtt;
 	private final BlockingConnection connection;
-	
+
 	@Autowired
-	public MQTTPublisher(@Value("${mqtt.host}") String host, @Value("${mqtt.cert}") String cert, @Value("${mqtt.topic}") String topic) throws Exception {
+	public MQTTPublisher(
+											@Value("${mqtt.host}") String host,
+											@Value("${mqtt.port}") Integer port,
+											@Value("${mqtt.cert}") String cert,
+											@Value("${mqtt.topic}") String topic) throws Exception {
 		this.topic = topic;
 
 		mqtt = new MQTT();
-		mqtt.setHost("tls://" + host + ":8883");			
-		mqtt.setSslContext(sslContext(cert));
-		
+		if (!Strings.isNullOrEmpty(cert)) {
+			mqtt.setHost("tls://" + host + ":" + port);
+			mqtt.setSslContext(sslContext(cert));
+		} else {
+			mqtt.setHost("tcp://" + host + ":" + port);
+		}
+
 		connection = mqtt.blockingConnection();
 		connection.connect();			
 	}

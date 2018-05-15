@@ -28,6 +28,8 @@ import java.util.Map;
 @Component
 public class MQTTPublisher implements MetricsDestination {
 
+	private static final Logger log = Logger.getLogger(ZabbixAvailabilityMetricsSource.class);
+
 	private final String topic;
 	
 	private final MQTT mqtt;
@@ -43,10 +45,14 @@ public class MQTTPublisher implements MetricsDestination {
 
 		mqtt = new MQTT();
 		if (!Strings.isNullOrEmpty(cert)) {
-			mqtt.setHost("tls://" + host + ":" + port);
+			String connect = "tls://" + host + ":" + port;
+			log.info("Making MQTT connection to: " + connect);
+			mqtt.setHost(connect);
 			mqtt.setSslContext(sslContext(cert));
 		} else {
-			mqtt.setHost("tcp://" + host + ":" + port);
+			String connect = "tcp://" + host + ":" + port;
+			log.info("Making MQTT connection to: " + connect);
+			mqtt.setHost(connect);
 		}
 
 		connection = mqtt.blockingConnection();

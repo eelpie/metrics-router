@@ -26,7 +26,6 @@ public class Publish {
 	
 	@Autowired
 	public Publish(List<MetricSource> metricSources, List<MetricsDestination> metricDestinations) {
-		
 		this.metricSources = metricSources;
 		this.metricDestinations = metricDestinations;
 		

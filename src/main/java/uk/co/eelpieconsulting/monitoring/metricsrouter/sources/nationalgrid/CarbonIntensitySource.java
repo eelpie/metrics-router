@@ -32,7 +32,7 @@ public class CarbonIntensitySource implements MetricSource {
 
             JsonNode jsonNode = mapper.readTree(json);
 
-            JsonNode path = jsonNode.findPath("data/intensity/forecast");
+            JsonNode path = jsonNode.at("/data/intensity/forecast");
             int forecast = path.intValue();
 
             HashMap<String, String> result = Maps.newHashMap();

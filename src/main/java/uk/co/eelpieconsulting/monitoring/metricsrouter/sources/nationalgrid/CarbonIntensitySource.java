@@ -21,9 +21,12 @@ public class CarbonIntensitySource implements MetricSource {
     @Override
     public Map<String, String> getMetrics() {
         try {
+            log.info("Fetching current intensity: " + INTENSITY_ENDPOINT);
             String json = new HttpFetcher().get(INTENSITY_ENDPOINT);
-             ObjectMapper mapper = new ObjectMapper();
-             mapper.enable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+            log.info("Got JSON: " + json);
+
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.enable(SerializationFeature.WRITE_NULL_MAP_VALUES);
 
             JsonNode jsonNode = mapper.readTree(json);
 

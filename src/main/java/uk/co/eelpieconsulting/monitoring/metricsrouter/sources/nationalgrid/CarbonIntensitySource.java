@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
 import uk.co.eelpieconsulting.common.http.HttpFetcher;
 import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.MetricSource;
 import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.zabbix.ZabbixAvailabilityMetricsSource;
@@ -12,6 +13,7 @@ import uk.co.eelpieconsulting.monitoring.metricsrouter.sources.zabbix.ZabbixAvai
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class CarbonIntensitySource implements MetricSource {
 
     private static final Logger log = Logger.getLogger(ZabbixAvailabilityMetricsSource.class);

@@ -17,8 +17,8 @@ public class CarbonIntensitySourceTest {
   public void canParseJson() throws Exception {
     String json = readFile("intensity.json");
 
-    String forecast = new CarbonIntensitySource().parseJson(json).get("carbonintensity.forecast");
-    String actual = new CarbonIntensitySource().parseJson(json).get("carbonintensity.actual");
+    String forecast = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity.national.forecast");
+    String actual = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity..national.actual");
 
     assertEquals("279", forecast);
     assertNull(actual);
@@ -28,7 +28,7 @@ public class CarbonIntensitySourceTest {
   public void shouldIncludeActualIfProvided() throws Exception {
     String json = readFile("intensity-actual.json");
 
-    String actual = new CarbonIntensitySource().parseJson(json).get("carbonintensity.actual");
+    String actual = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity.national.actual");
 
     assertEquals("311", actual);
   }

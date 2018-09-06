@@ -3,6 +3,7 @@ package uk.co.eelpieconsulting.monitoring.metricsrouter.sources.nationalgrid;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
@@ -21,6 +22,8 @@ public class CarbonIntensitySource implements MetricSource {
     private static final Logger log = Logger.getLogger(ZabbixAvailabilityMetricsSource.class);
 
     private final String INTENSITY_ENDPOINT = "https://api.carbonintensity.org.uk/intensity";
+    private final int SOUTH_ENGLAND_REGION = 12;
+    private final String INTENSITY_REGIONAL_ENDPOINT = "https://api.carbonintensity.org.uk/regional/regionid/" + SOUTH_ENGLAND_REGION;
 
     private final ObjectMapper mapper;
 
@@ -34,7 +37,13 @@ public class CarbonIntensitySource implements MetricSource {
     public Map<String, String> getMetrics() {
         try {
             log.info("Fetching current intensity: " + INTENSITY_ENDPOINT);
-            return parseJson(new HttpFetcher().get(INTENSITY_ENDPOINT));
+            Map<String, String> nationalResults = parseJson(new HttpFetcher().get(INTENSITY_ENDPOINT));
+            log.info("Fetching current regional intensity: " + INTENSITY_ENDPOINT);
+            Map<String, String> regionalResults = parseJson(new HttpFetcher().get(INTENSITY_REGIONAL_ENDPOINT));
+
+            Map<String, String> combined = Maps.newHashMap(nationalResults);
+            combined.putAll(regionalResults);
+            return combined;
 
         } catch (Exception e) {
             log.error(e);

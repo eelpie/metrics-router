@@ -38,7 +38,7 @@ public class CarbonIntensitySource implements MetricSource {
         try {
             log.info("Fetching current intensity: " + INTENSITY_ENDPOINT);
             Map<String, String> nationalResults = parseJson(new HttpFetcher().get(INTENSITY_ENDPOINT));
-            log.info("Fetching current regional intensity: " + INTENSITY_ENDPOINT);
+            log.info("Fetching current regional intensity: " + INTENSITY_REGIONAL_ENDPOINT);
             Map<String, String> regionalResults = parseJson(new HttpFetcher().get(INTENSITY_REGIONAL_ENDPOINT));
 
             Map<String, String> combined = Maps.newHashMap(nationalResults);

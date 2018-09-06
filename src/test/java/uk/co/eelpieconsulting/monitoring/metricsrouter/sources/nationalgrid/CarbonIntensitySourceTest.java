@@ -33,6 +33,15 @@ public class CarbonIntensitySourceTest {
     assertEquals("311", actual);
   }
 
+  @Test
+  public void canParseRegionalResults() throws Exception {
+    String json = readFile("intensity-regional.json");
+
+    String forecast = new CarbonIntensitySource().parseRegionalJson(json, "south-england").get("carbonintensity.south-england.forecast");
+
+    assertEquals("278", forecast);
+  }
+
   private String readFile(String filename) throws IOException {
     String path = getClass().getClassLoader().getResource(filename).getPath();
     return IOUtils.toString(new FileInputStream(new File(path)), "UTF-8");

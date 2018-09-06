@@ -37,9 +37,9 @@ public class CarbonIntensitySource implements MetricSource {
     public Map<String, String> getMetrics() {
         try {
             log.info("Fetching current intensity: " + INTENSITY_ENDPOINT);
-            Map<String, String> nationalResults = parseJson(new HttpFetcher().get(INTENSITY_ENDPOINT));
+            Map<String, String> nationalResults = parseJson(new HttpFetcher().get(INTENSITY_ENDPOINT), "national");
             log.info("Fetching current regional intensity: " + INTENSITY_REGIONAL_ENDPOINT);
-            Map<String, String> regionalResults = parseJson(new HttpFetcher().get(INTENSITY_REGIONAL_ENDPOINT));
+            Map<String, String> regionalResults = parseJson(new HttpFetcher().get(INTENSITY_REGIONAL_ENDPOINT), "south-england");
 
             Map<String, String> combined = Maps.newHashMap(nationalResults);
             combined.putAll(regionalResults);
@@ -51,7 +51,7 @@ public class CarbonIntensitySource implements MetricSource {
         }
     }
 
-    protected HashMap<String, String> parseJson(String json) throws IOException {
+    protected HashMap<String, String> parseJson(String json, String key) throws IOException {
         JsonNode jsonNode = mapper.readTree(json);
         JsonNode intensity = jsonNode.path("data").get(0).path("intensity");
 
@@ -59,7 +59,7 @@ public class CarbonIntensitySource implements MetricSource {
         for (String i: Lists.newArrayList("forecast", "actual")) {
             JsonNode value = intensity.get(i);
             if (value.isInt()) {
-                result.put("carbonintensity." + i, Integer.toString(value.intValue()));
+                result.put("carbonintensity." + key + "." + i, Integer.toString(value.intValue()));
             }
         }
         return result;

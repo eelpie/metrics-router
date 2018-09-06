@@ -58,7 +58,7 @@ public class CarbonIntensitySource implements MetricSource {
 
     @Override
     public int getInterval() {
-        return 60;
+        return 300;
     }
 
 }

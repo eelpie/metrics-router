@@ -28,70 +28,70 @@ import java.util.Map;
 @Component
 public class MQTTPublisher implements MetricsDestination {
 
-	private static final Logger log = Logger.getLogger(ZabbixAvailabilityMetricsSource.class);
+  private static final Logger log = Logger.getLogger(ZabbixAvailabilityMetricsSource.class);
 
-	private final String topic;
-	
-	private final MQTT mqtt;
-	private final BlockingConnection connection;
+  private final String topic;
 
-	@Autowired
-	public MQTTPublisher(
-											@Value("${mqtt.host}") String host,
-											@Value("${mqtt.port}") Integer port,
-											@Value("${mqtt.cert}") String cert,
-											@Value("${mqtt.topic}") String topic) throws Exception {
-		this.topic = topic;
+  private final MQTT mqtt;
+  private final BlockingConnection connection;
 
-		mqtt = new MQTT();
-		if (!Strings.isNullOrEmpty(cert)) {
-			String connect = "tls://" + host + ":" + port;
-			log.info("Making MQTT connection to: " + connect);
-			mqtt.setHost(connect);
-			mqtt.setSslContext(sslContext(cert));
-		} else {
-			String connect = "tcp://" + host + ":" + port;
-			log.info("Making MQTT connection to: " + connect);
-			mqtt.setHost(connect);
-		}
+  @Autowired
+  public MQTTPublisher(
+          @Value("${mqtt.host}") String host,
+          @Value("${mqtt.port}") Integer port,
+          @Value("${mqtt.cert}") String cert,
+          @Value("${mqtt.topic}") String topic) throws Exception {
+    this.topic = topic;
 
-		connection = mqtt.blockingConnection();
-		connection.connect();			
-	}
-	
-	@Override
-	public void publishMetrics(Map<String, String> metrics) {
-		try {							
-			for (String metric : metrics.keySet()) {
-				String value = metrics.get(metric);
-				publish(connection, metric, value);	
-			}
-			
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+    mqtt = new MQTT();
+    if (!Strings.isNullOrEmpty(cert)) {
+      String connect = "tls://" + host + ":" + port;
+      log.info("Making MQTT connection to: " + connect);
+      mqtt.setHost(connect);
+      mqtt.setSslContext(sslContext(cert));
+    } else {
+      String connect = "tcp://" + host + ":" + port;
+      log.info("Making MQTT connection to: " + connect);
+      mqtt.setHost(connect);
+    }
 
-	private void publish(BlockingConnection connection, String metric, String value) throws Exception {
-		final String message = metric + (!Strings.isNullOrEmpty(value) ? ":" + value : "");
-		connection.publish(topic, message.getBytes(), QoS.AT_MOST_ONCE, false);
-	}
-	
-	private SSLContext sslContext(String cert) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, KeyManagementException {
-		CertificateFactory cf = CertificateFactory.getInstance("X.509");
-		InputStream resourceAsStream = new FileInputStream(new File(cert));
-		X509Certificate caCert = (X509Certificate) cf.generateCertificate(resourceAsStream);
+    connection = mqtt.blockingConnection();
+    connection.connect();
+  }
 
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-		ks.load(null); // You don't need the KeyStore instance to come from a file.
-		ks.setCertificateEntry("caCert", caCert);
+  @Override
+  public void publishMetrics(Map<String, String> metrics) {
+    try {
+      for (String metric : metrics.keySet()) {
+        String value = metrics.get(metric);
+        publish(connection, metric, value);
+      }
 
-		tmf.init(ks);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(null, tmf.getTrustManagers(), null);
-		return sslContext;
-	}
-	
+  private void publish(BlockingConnection connection, String metric, String value) throws Exception {
+    final String message = metric + (!Strings.isNullOrEmpty(value) ? ":" + value : "");
+    connection.publish(topic, message.getBytes(), QoS.AT_MOST_ONCE, false);
+  }
+
+  private SSLContext sslContext(String cert) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, KeyManagementException {
+    CertificateFactory cf = CertificateFactory.getInstance("X.509");
+    InputStream resourceAsStream = new FileInputStream(new File(cert));
+    X509Certificate caCert = (X509Certificate) cf.generateCertificate(resourceAsStream);
+
+    TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+    ks.load(null); // You don't need the KeyStore instance to come from a file.
+    ks.setCertificateEntry("caCert", caCert);
+
+    tmf.init(ks);
+
+    SSLContext sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(null, tmf.getTrustManagers(), null);
+    return sslContext;
+  }
+
 }

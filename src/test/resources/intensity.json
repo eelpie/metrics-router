@@ -1,11 +1,13 @@
-{ 
-  "data":[{ 
-    "from": "2018-09-06T07:00Z",
-    "to": "2018-09-06T07:30Z",
-    "intensity": {
-      "forecast": 279,
-      "actual": null,
-      "index": "high"
+{
+  "data": [
+    {
+      "from": "2018-09-06T07:00Z",
+      "to": "2018-09-06T07:30Z",
+      "intensity": {
+        "forecast": 279,
+        "actual": null,
+        "index": "high"
+      }
     }
-  }]
+  ]
 }

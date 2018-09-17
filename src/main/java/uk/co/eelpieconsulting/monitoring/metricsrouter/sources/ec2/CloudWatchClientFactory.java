@@ -12,26 +12,26 @@ import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 
 @Component
 public class CloudWatchClientFactory {
-	
-	private final String accessKey;
-	private final String accessSecret;
-	private final String regionName;
 
-	@Autowired
-	public CloudWatchClientFactory(@Value("${ec2.accessKey}") String accessKey, 
-			@Value("${ec2.accessSecret}") String accessSecret,
-			@Value("${ec2.regionName}") String regionName) {
-				this.accessKey = accessKey;
-				this.accessSecret = accessSecret;
-				this.regionName = regionName;		
-	}
-	
-	public AmazonCloudWatchClient getCloudWatchClient() {
-		AWSCredentials credentials = new BasicAWSCredentials(accessKey, accessSecret);
-		AmazonCloudWatchClient amazonCloudWatchClient = new AmazonCloudWatchClient(credentials);
-		Region region = RegionUtils.getRegion(regionName);
-		amazonCloudWatchClient.setRegion(region);
-		return amazonCloudWatchClient;
-	}
-	
+  private final String accessKey;
+  private final String accessSecret;
+  private final String regionName;
+
+  @Autowired
+  public CloudWatchClientFactory(@Value("${ec2.accessKey}") String accessKey,
+                                 @Value("${ec2.accessSecret}") String accessSecret,
+                                 @Value("${ec2.regionName}") String regionName) {
+    this.accessKey = accessKey;
+    this.accessSecret = accessSecret;
+    this.regionName = regionName;
+  }
+
+  public AmazonCloudWatchClient getCloudWatchClient() {
+    AWSCredentials credentials = new BasicAWSCredentials(accessKey, accessSecret);
+    AmazonCloudWatchClient amazonCloudWatchClient = new AmazonCloudWatchClient(credentials);
+    Region region = RegionUtils.getRegion(regionName);
+    amazonCloudWatchClient.setRegion(region);
+    return amazonCloudWatchClient;
+  }
+
 }

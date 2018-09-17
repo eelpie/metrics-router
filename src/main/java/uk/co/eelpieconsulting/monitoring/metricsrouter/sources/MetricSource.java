@@ -4,7 +4,8 @@ import java.util.Map;
 
 public interface MetricSource {
 
-	public Map<String, String> getMetrics();
-	public int getInterval();
+  public Map<String, String> getMetrics();
+
+  public int getInterval();
 
 }

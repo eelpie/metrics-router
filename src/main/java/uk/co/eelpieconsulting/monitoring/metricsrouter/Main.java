@@ -13,11 +13,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class Main {
 
-	@SuppressWarnings("unused")
-	private static ApplicationContext ctx;
-	
-	public static void main(String[] args) throws Exception {
-        ctx = SpringApplication.run(Main.class, args);        
-    }
-	
+  @SuppressWarnings("unused")
+  private static ApplicationContext ctx;
+
+  public static void main(String[] args) throws Exception {
+    ctx = SpringApplication.run(Main.class, args);
+  }
+
 }

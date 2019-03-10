@@ -6,32 +6,32 @@
       "shortname": "South England",
       "data": [
         {
-          "from": "2018-09-06T09:30Z",
-          "to": "2018-09-06T10:00Z",
+          "from": "2019-03-10T10:30Z",
+          "to": "2019-03-10T11:00Z",
           "intensity": {
-            "forecast": 278,
-            "index": "moderate"
+            "forecast": 159,
+            "index": "low"
           },
           "generationmix": [
             {
               "fuel": "biomass",
-              "perc": 0.8
+              "perc": 2.9
             },
             {
               "fuel": "coal",
-              "perc": 0.9
-            },
-            {
-              "fuel": "imports",
               "perc": 0
             },
             {
+              "fuel": "imports",
+              "perc": 0.7
+            },
+            {
               "fuel": "gas",
-              "perc": 68.1
+              "perc": 39.3
             },
             {
               "fuel": "nuclear",
-              "perc": 1.5
+              "perc": 10.4
             },
             {
               "fuel": "other",
@@ -39,15 +39,15 @@
             },
             {
               "fuel": "hydro",
-              "perc": 0
+              "perc": 3.2
             },
             {
               "fuel": "solar",
-              "perc": 27.2
+              "perc": 27.3
             },
             {
               "fuel": "wind",
-              "perc": 1.5
+              "perc": 16.2
             }
           ]
         }

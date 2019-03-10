@@ -18,9 +18,9 @@ public class CarbonIntensitySourceTest {
     String json = readFile("intensity.json");
 
     String forecast = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity.national.forecast");
-    String actual = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity..national.actual");
+    String actual = new CarbonIntensitySource().parseJson(json, "national").get("carbonintensity.national.actual");
 
-    assertEquals("279", forecast);
+    assertEquals("159", forecast);
     assertNull(actual);
   }
 
@@ -39,7 +39,7 @@ public class CarbonIntensitySourceTest {
 
     String forecast = new CarbonIntensitySource().parseRegionalJson(json, "south-england").get("carbonintensity.south-england.forecast");
 
-    assertEquals("278", forecast);
+    assertEquals("159", forecast);
   }
 
   private String readFile(String filename) throws IOException {

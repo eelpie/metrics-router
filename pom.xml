@@ -15,7 +15,7 @@
 	</parent>
 
 	<properties>
-		<jackson.version>2.9.6</jackson.version>
+		<jackson.version>2.9.10</jackson.version>
 	</properties>
 	
 	<repositories>
